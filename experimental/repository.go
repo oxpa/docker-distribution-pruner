@@ -9,7 +9,7 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/dustin/go-humanize"
 )
 
