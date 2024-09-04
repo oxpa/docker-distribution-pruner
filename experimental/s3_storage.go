@@ -90,7 +90,7 @@ func (f *s3Storage) Walk(path string, baseDir string, fn walkFunc) error {
 			}
 		}
 
-		if *resp.IsTruncated {
+		if resp.IsTruncated != nil && *resp.IsTruncated {
 			atomic.AddInt64(&f.apiCalls, 1)
 			resp, err = f.S3.ListObjects(&s3.ListObjectsInput{
 				Bucket:  aws.String(f.Bucket),
@@ -172,7 +172,7 @@ func (f *s3Storage) List(path string, fn walkFunc) error {
 			}
 		}
 
-		if *resp.IsTruncated {
+		if resp.IsTruncated != nil && *resp.IsTruncated {
 			atomic.AddInt64(&f.apiCalls, 1)
 			resp, err = f.S3.ListObjects(&s3.ListObjectsInput{
 				Bucket:    aws.String(f.Bucket),
@@ -264,6 +264,10 @@ func newS3Storage(config *distributionStorageS3) (storageObject, error) {
 	awsConfig := aws.NewConfig()
 	awsConfig.Endpoint = config.RegionEndpoint
 	awsConfig.Region = config.Region
+
+	if config.RegionEndpoint != nil {
+		awsConfig.S3ForcePathStyle = aws.Bool(true)
+	}
 
 	if config.AccessKey != "" && config.SecretKey != "" {
 		awsConfig.Credentials = credentials.NewStaticCredentials(config.AccessKey, config.SecretKey, "")
