@@ -1,4 +1,4 @@
-module gitlab.com/gitlab-org/docker-distribution-pruner
+module github.com/oxpa/docker-distribution-pruner
 
 go 1.16
 
