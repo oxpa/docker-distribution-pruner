@@ -60,7 +60,7 @@ jobs:
           cd -
 
       - name: Add bucket hostname
-        run: echo 127.0.0.1 mockbucket.s3mock | sudo tee -a /etc/hosts
+        run: echo "127.0.0.1 mockbucket.s3mock s3mock" | sudo tee -a /etc/hosts
       
       - name: Login to Dockerhub
         uses: docker/login-action@v3
