@@ -25,7 +25,7 @@ jobs:
           - 5000:5000
         env:
           REGISTRY_STORAGE: "s3"
-          REGISTRY_STORAGE_S3_BUCKET: "s3mock"
+          REGISTRY_STORAGE_S3_BUCKET: "mockbucket"
           REGISTRY_STORAGE_S3_V4AUTH: "false"
           REGISTRY_STORAGE_S3_REGION: "generic"
           REGISTRY_STORAGE_S3_REGIONENDPOINT: "http://s3mock:9090"
@@ -41,7 +41,7 @@ jobs:
         ports:
           - 9090:9090
         env:
-          initialBuckets: testme
+          initialBuckets: mockbucket
         credentials:
           username: oxpa
           password: ${{ secrets.DOCKERHUB_PASS }}
@@ -49,6 +49,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Build code
+        run: |
+          cd cmds/docker-distribution-pruner/
+          go get
+          go build
+          mv docker-distribution-pruner  ../../
+          cd -
       
       - name: Login to Dockerhub
         uses: docker/login-action@v3
@@ -67,14 +75,67 @@ jobs:
           driver-opts: network=host
           
           
-      - name: Build test images
-        id: build
+      - name: Build A as latest image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
         env:
           SOURCE_DATE_EPOCH: 123
         with:
-          file: "tests/Dockerfile"
-          context: "."
+          file: "examples/fixtures/Dockerfile"
+          context: "examples/fixtures/"
           platforms: "amd64,arm64"
-          tags: "localhost:9090/tests/image1:tag1,localhost:9090/tests/image2:tag1"
+          tags: "localhost:5000/image:latest"
           outputs: type=registry,push=true,rewrite-timestamp=true
+          target: "A"
+          
+      - name: Build B as latest image
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        env:
+          SOURCE_DATE_EPOCH: 123
+        with:
+          file: "examples/fixtures/Dockerfile"
+          context: "examples/fixtures/"
+          platforms: "amd64,arm64"
+          tags: "localhost:5000/image:latest"
+          outputs: type=registry,push=true,rewrite-timestamp=true
+          target: "B"
+          
+      - name: Build AB as latest image
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        env:
+          SOURCE_DATE_EPOCH: 123
+        with:
+          file: "examples/fixtures/Dockerfile"
+          context: "examples/fixtures/"
+          platforms: "amd64,arm64"
+          tags: "localhost:5000/image:latest,localhost:5000/image:AB"
+          outputs: type=registry,push=true,rewrite-timestamp=true
+          target: "AB"
+          
+      - name: Build A as latest and A
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        env:
+          SOURCE_DATE_EPOCH: 123
+        with:
+          file: "examples/fixtures/Dockerfile"
+          context: "examples/fixtures/"
+          platforms: "amd64,arm64"
+          tags: "localhost:5000/image:A,localhost:5000/image:latest"
+          outputs: type=registry,push=true,rewrite-timestamp=true
+          target: "A"
+          
+      - name: Build AB for latest
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        env:
+          SOURCE_DATE_EPOCH: 123
+        with:
+          file: "examples/fixtures/Dockerfile"
+          context: "examples/fixtures/"
+          platforms: "amd64,arm64"
+          tags: "localhost:5000/image:latest"
+          outputs: type=registry,push=true,rewrite-timestamp=true
+          target: "AB"
+
+
+      - name: Prune registry
+        run: |
+          EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml

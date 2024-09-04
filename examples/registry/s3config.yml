@@ -1,0 +1,30 @@
+version: 0.1
+log:
+  level: debug
+  fields:
+    service: registry
+storage:
+  s3:
+    bucket: "mockbucket"
+    v4auth: "false"
+    region: "generic"
+    regionendpoint: "http://s3mock:9090"
+    secure: "false"
+    accesskey: "123"
+    secretkey: "123"
+  redirect:
+    disable: "true"
+  delete:
+    enable: "true"
+      
+http:
+  addr: :5000
+  secret: "shared-registry-secret"
+  headers:
+      X-Content-Type-Options: [nosniff]
+
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+    threshold: 3
