@@ -42,6 +42,7 @@ jobs:
           - 9090:9090
         env:
           initialBuckets: mockbucket
+          debug: true
         credentials:
           username: oxpa
           password: ${{ secrets.DOCKERHUB_PASS }}
