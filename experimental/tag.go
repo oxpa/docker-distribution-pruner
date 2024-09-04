@@ -55,6 +55,9 @@ func (t *tagData) sweep() error {
 		if version == t.current {
 			continue
 		}
+		if t.repository.manifests[version] > 0 {
+			continue
+		}
 
 		if *deleteOldTagVersions {
 			err := deleteFile(t.versionLinkPath(version), digestReferenceSize)
