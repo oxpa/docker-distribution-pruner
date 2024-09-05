@@ -152,7 +152,7 @@ jobs:
 
       - name: Prune registry
         run: |
-          EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete
+          EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete -trace
 
       - name: Test images can be downloaded after pruning
         run: |

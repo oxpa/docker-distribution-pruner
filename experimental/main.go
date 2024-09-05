@@ -17,6 +17,7 @@ var (
 	jobs             = flag.Int("jobs", 10, "Number of concurrent jobs to execute")
 	parallelWalkJobs = flag.Int("parallel-walk-jobs", 10, "Number of concurrent parallel walk jobs to execute")
 
+	trace      = flag.Bool("trace", false, "Print trace messages")
 	debug      = flag.Bool("debug", false, "Print debug messages")
 	verbose    = flag.Bool("verbose", true, "Print verbose messages")
 	softErrors = flag.Bool("soft-errors", false, "Print errors, but do not fail")
@@ -47,7 +48,9 @@ func logErrorln(args ...interface{}) {
 func Main() {
 	flag.Parse()
 
-	if *debug {
+    if *trace {
+		logrus.SetLevel(logrus.TraceLevel)
+    } else if *debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	} else if *verbose {
 		logrus.SetLevel(logrus.InfoLevel)
