@@ -69,7 +69,7 @@ func (m *manifestData) path() string {
 }
 
 func (m *manifestData) load(blobs blobsData) error {
-	logrus.Println("MANIFEST:", m.path(), ": loading...")
+	logrus.Infoln("MANIFEST:", m.path(), ": loading...")
 
 	data, err := currentStorage.Read(m.path(), blobs.etag(m.digest))
 	if err != nil {
@@ -88,7 +88,7 @@ func (m *manifestData) load(blobs blobsData) error {
 				if err != nil {
 					return err
 				}
-				logrus.Println("MANIFEST: list", m.path(), " references ", digest)
+				logrus.Infoln("MANIFEST: list", m.path(), " references ", digest)
 				m.manifests = append(m.manifests, digest)
 
 				path := filepath.Join("blobs", digest.scopedPath(), "data")

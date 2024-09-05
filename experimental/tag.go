@@ -45,6 +45,7 @@ func (t *tagData) mark(blobs blobsData) error {
 
 func (t *tagData) sweep() error {
 	if !t.current.valid() {
+        logrus.Trace("TAG: deleting invalid current ", t.currentLinkPath())
 		err := deleteFile(t.currentLinkPath(), digestReferenceSize)
 		if err != nil {
 			return err
@@ -55,11 +56,13 @@ func (t *tagData) sweep() error {
 		if version == t.current {
 			continue
 		}
+
 		if t.repository.manifests[version] > 0 {
 			continue
 		}
 
 		if *deleteOldTagVersions {
+            logrus.Trace("TAG: deleting old version", version)
 			err := deleteFile(t.versionLinkPath(version), digestReferenceSize)
 			if err != nil {
 				return err

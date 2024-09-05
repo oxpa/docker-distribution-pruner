@@ -59,6 +59,7 @@ func (r *repositoryData) markManifest(revision digest) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
+	logrus.Debugln("MANIFEST: marking ", revision)
 	r.manifests[revision]++
 	return nil
 }
@@ -182,6 +183,7 @@ func (r *repositoryData) mark(blobs blobsData) error {
 }
 
 func (r *repositoryData) sweep() error {
+    logrus.Debug("SWEEP: list of manifests", r.manifests)
 	for name, t := range r.tags {
 		err := t.sweep()
 		if err != nil {
