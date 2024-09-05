@@ -77,10 +77,8 @@ func (r *repositoryData) markManifestLayers(blobs blobsData, revision digest) er
 
 	var resultErr error
     for _, m := range manifest.manifests {
-        _, ok := r.manifests[m]
-        if ok {
-            r.markManifest(m)
-        }
+    	r.markManifest(m)
+		blobs.mark(m)
     }
 
 	r.lock.Lock()
