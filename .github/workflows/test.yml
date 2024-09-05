@@ -25,13 +25,14 @@ jobs:
           - 5000:5000
         env:
           REGISTRY_STORAGE: "s3"
+          REGISTRY_STORAGE_S3_REGIONENDPOINT: "http://s3mock:9090"
           REGISTRY_STORAGE_S3_BUCKET: "mockbucket"
           REGISTRY_STORAGE_S3_V4AUTH: "false"
           REGISTRY_STORAGE_S3_REGION: "generic"
-          REGISTRY_STORAGE_S3_REGIONENDPOINT: "http://s3mock:9090"
           REGISTRY_STORAGE_S3_SECURE: "false"
           REGISTRY_STORAGE_S3_ACCESSKEY: "123"
           REGISTRY_STORAGE_S3_SECRETKEY: "123"
+          REGISTRY_STORAGE_DELETE_ENABLED: "true"
           REGISTRY_STORAGE_REDIRECT_DISABLE: "true"
         credentials:
           username: oxpa
@@ -153,11 +154,43 @@ jobs:
       - name: Prune registry
         run: |
           EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete -trace
+          if EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete -trace 2>&1 | grep 'DELETE '; then
+            exit 1
+          fi
+
 
       - name: Test images can be downloaded after pruning
         run: |
           regctl --host reg=localhost:5000,tls=disabled tag list localhost:5000/image
           for i in A AB latest; do 
+            regctl --host reg=localhost:5000,tls=disabled image manifest localhost:5000/image:$i
+            regctl --host reg=localhost:5000,tls=disabled image export localhost:5000/image:$i > /dev/null
+          done
+      - name: Delete tag
+        run: |
+          regctl --host reg=localhost:5000,tls=disabled tag list localhost:5000/image
+          regctl --host reg=localhost:5000,tls=disabled tag delete localhost:5000/image:latest
+          for i in A AB; do 
+            regctl --host reg=localhost:5000,tls=disabled image manifest localhost:5000/image:$i
+            regctl --host reg=localhost:5000,tls=disabled image export localhost:5000/image:$i > /dev/null
+          done
+          if regctl --host reg=localhost:5000,tls=disabled image manifest localhost:5000/image:latest; then
+            echo "Something went wrong!"
+            exit 1
+          fi
+
+      - name: Prune registry again
+        run: |
+          EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete -trace
+          if EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete -trace 2>&1 | grep 'DELETE '; then
+            exit 1
+          fi
+
+
+      - name: Test images can be downloaded after pruning a tag
+        run: |
+          regctl --host reg=localhost:5000,tls=disabled tag list localhost:5000/image
+          for i in A AB; do
             regctl --host reg=localhost:5000,tls=disabled image manifest localhost:5000/image:$i
             regctl --host reg=localhost:5000,tls=disabled image export localhost:5000/image:$i > /dev/null
           done
