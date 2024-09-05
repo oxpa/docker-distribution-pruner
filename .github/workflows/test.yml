@@ -139,7 +139,25 @@ jobs:
           outputs: type=registry,push=true,rewrite-timestamp=true
           target: "AB"
 
+      - name: Install regctl
+        uses: iarekylew00t/regctl-installer@v2
+
+      - name: Test images can be downloaded
+        run: |
+          regctl --host reg=localhost:5000,tls=disabled tag list localhost:5000/image
+          for i in A AB latest; do 
+            regctl --host reg=localhost:5000,tls=disabled image manifest localhost:5000/image:$i 
+            regctl --host reg=localhost:5000,tls=disabled image export localhost:5000/image:$i > /dev/null
+          done
 
       - name: Prune registry
         run: |
-          EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml
+          EXPERIMENTAL=true ./docker-distribution-pruner -config examples/registry/s3config.yml -delete
+
+      - name: Test images can be downloaded after pruning
+        run: |
+          regctl --host reg=localhost:5000,tls=disabled tag list localhost:5000/image
+          for i in A AB latest; do 
+            regctl --host reg=localhost:5000,tls=disabled image manifest localhost:5000/image:$i
+            regctl --host reg=localhost:5000,tls=disabled image export localhost:5000/image:$i > /dev/null
+          done
